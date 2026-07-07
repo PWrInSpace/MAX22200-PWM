@@ -1,33 +1,46 @@
 #ifndef MAX22200_REGS_H
 #define MAX22200_REGS_H
 
-#define MAX22200_CMD_ADDR_STATUS 0x00
-#define MAX22200_CMD_ADDR_CH0 0x01
-#define MAX22200_CMD_ADDR_CH1 0x02
-#define MAX22200_CMD_ADDR_CH2 0x03
-#define MAX22200_CMD_ADDR_CH3 0x04
-#define MAX22200_CMD_ADDR_CH4 0x05
-#define MAX22200_CMD_ADDR_CH5 0x06
-#define MAX22200_CMD_ADDR_CH6 0x07
-#define MAX22200_CMD_ADDR_CH7 0x08
-#define MAX22200_CMD_ADDR_FAULT 0x09
-#define MAX22200_CMD_ADDR_CFG_DPM 0x0A
+#define MAX22200_FRAME_SIZE        4
+#define MAX22200_CHANNELS          8
+#define MAX22200_CHANNELS_CONFIG   4
+#define MAX22200_MAX_CHN_IDX       7
 
-#define MAX22200_CMD_RW_POS 7
-#define MAX22200_CMD_ADDR_POS 1
-#define MAX22200_CMD_8BIT_POS 0
 
-#define MAX22200_CMD_READ         (0x00 << MAX22200_CMD_RW_POS)
-#define MAX22200_CMD_WRITE        (0x01 << MAX22200_CMD_RW_POS)
+//ADDERSSES
 
-#define MAX22200_CMD_ADDR_MASK    (0x0F << MAX22200_CMD_ADDR_POS)
 
-#define MAX22200_CMD_32BIT_MODE   (0x00 << MAX22200_CMD_8BIT_POS)
-#define MAX22200_CMD_8BIT_MODE    (0x01 << MAX22200_CMD_8BIT_POS)
+#define MAX22200_ADDR_STATUS   0x00
+#define MAX22200_ADDR_CH0      0x01
+#define MAX22200_ADDR_CH1      0x02
+#define MAX22200_ADDR_CH2      0x03
+#define MAX22200_ADDR_CH3      0x04
+#define MAX22200_ADDR_CH4      0x05
+#define MAX22200_ADDR_CH5      0x06
+#define MAX22200_ADDR_CH6      0x07
+#define MAX22200_ADDR_CH7      0x08
+#define MAX22200_ADDR_FAULT    0x09
+#define MAX22200_ADDR_CFG_DPM  0x0A
+
+//COMMAND REGISTRY
+
+
+#define MAX22200_CMD_RW_POS        7
+#define MAX22200_CMD_ADDR_POS      1
+#define MAX22200_CMD_8BIT_POS      0
+
+#define MAX22200_CMD_READ          (0x00 << MAX22200_CMD_RW_POS)
+#define MAX22200_CMD_WRITE         (0x01 << MAX22200_CMD_RW_POS)
+
+#define MAX22200_CMD_ADDR_MASK     (0x0F << MAX22200_CMD_ADDR_POS)
+
+#define MAX22200_CMD_32BIT_MODE    (0x00 << MAX22200_CMD_8BIT_POS)
+#define MAX22200_CMD_8BIT_MODE     (0x01 << MAX22200_CMD_8BIT_POS)
 
 //STATUS
 
-#define MAX22200_STATUS_ONCH_POS 24
+
+#define MAX22200_STATUS_ONCH_POS   24
 
 #define MAX22200_ONCH_CH0          (0x01 << 0)
 #define MAX22200_ONCH_CH1          (0x01 << 1)
@@ -87,5 +100,71 @@
 #define MAX22200_STATUS_ACTIVE     (0x01 << 0)
 
 //CHANNELS
+
+
+#define MAX22200_HFS_POS            31
+#define MAX22200_HFS_MASK           0x01   
+
+#define MAX22200_HOLD_POS           24
+#define MAX22200_HOLD_MASK          0x7F
+
+#define MAX22200_TRGNSP_IO_POS      23
+#define MAX22200_TRGNSP_IO_MASK     0x01
+ 
+#define MAX22200_HIT_POS            16
+#define MAX22200_HIT_MASK           0x7F
+
+#define MAX22200_HIT_T_POS          8
+#define MAX22200_HIT_T_MASK         0xFF
+
+#define MAX22200_VDRNCDR_POS        7
+#define MAX22200_VDRNCDR_MASK       0x01
+
+#define MAX22200_HSNLS_POS          6
+#define MAX22200_HSNLS_MASK         0x01
+
+#define MAX22200_FREQ_CFG_POS       4
+#define MAX22200_FREQ_CFG_MASK      0x03
+
+#define MAX22200_SRC_POS            3
+#define MAX22200_SRC_MASK           0x01
+
+#define MAX22200_OL_EN_POS          2
+#define MAX22200_OL_EN_MASK         0x01
+
+#define MAX22200_DPM_EN_POS         1
+#define MAX22200_DPM_EN_MASK        0x01
+
+#define MAX22200_HHF_EN_POS         0
+#define MAX22200_HHF_EN_MASK        0x01
+
+//FAULT
+
+
+#define MAX22200_OCP_POS            24
+#define MAX22200_OCP_MASK           0xFF
+
+#define MAX22200_HHF_POS            16
+#define MAX22200_HHF_MASK           0xFF
+
+#define MAX22200_OLF_POS            8
+#define MAX22200_OLF_MASK           0xFF
+
+#define MAX22200_DPM_POS            0
+#define MAX22200_DPM_MASK           0xFF
+
+//DPM
+
+
+//bity 15-31 reserved (ustawione na 0)
+
+#define MAX22200_DPM_ISTART_POS     8
+#define MAX22200_DPM_ISTART_MASK    0x7F
+
+#define MAX22200_DPM_TDEB_POS       4
+#define MAX22200_DPM_TDEB_MASK      0x0F
+
+#define MAX22200_DPM_IPTH_POS       0
+#define MAX22200_DPM_IPTH_MASK      0x0F
 
 #endif //MAX22200_REGS_H
