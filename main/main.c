@@ -1,5 +1,6 @@
 #include "max22200.h"
 #include "max22200_regs.h"
+#include "spi_init.h"
 #include "esp_log.h"
 
 void app_main(void) {
