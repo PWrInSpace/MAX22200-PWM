@@ -16,5 +16,6 @@
 #define PIN_ENABLE 2
 
 void max22200_init_hardware(void);
+void max22200_init_procedure(void);
 
 #endif //MAX22000_SPI

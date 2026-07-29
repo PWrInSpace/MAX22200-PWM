@@ -1,4 +1,5 @@
 #include "spi_init.h"
+#include "max22200.h"
 
 static spi_device_handle_t spi_handle;
 
@@ -13,7 +14,7 @@ void max22200_init_hardware(void) {
 
     gpio_set_level(PIN_CS, 1);     
     gpio_set_level(PIN_CMD, 0);    
-    gpio_set_level(PIN_ENABLE, 1);
+    gpio_set_level(PIN_ENABLE, 0);
     //SPI
     spi_bus_config_t bus_cfg = {
         .mosi_io_num = PIN_MOSI, .miso_io_num = PIN_MISO, .sclk_io_num = PIN_CLK,
@@ -28,4 +29,20 @@ void max22200_init_hardware(void) {
         .queue_size = 1
     };
     spi_bus_add_device(SPI3_HOST, &dev_cfg, &spi_handle);
+}
+
+void max22200_init_procedure(void) {
+    gpio_set_level(PIN_ENABLE, 1);
+    usleep(500);
+
+    uint32 status_val = max22200_read(MAX22200_ADDR_STATUS);
+
+    if(status_val == 0x00000000 || status_val == 0xFFFFFFFF) {
+        ESP_LOGE("BLAD", "STATUS niepoprawny. Sprawdź kable i zasilanie!\n");
+    }
+
+    status_val = MAX22200_STATUS_ACTIVE;
+    max22200_write(MAX22200_ADDR_STATUS, status_val);
+
+
 }
