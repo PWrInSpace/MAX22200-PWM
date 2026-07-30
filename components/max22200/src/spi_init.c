@@ -1,5 +1,8 @@
 #include "spi_init.h"
 #include "max22200.h"
+#include "max22200_regs.h"
+#include <unistd.h>
+#include "esp_log.h"
 
 static spi_device_handle_t spi_handle;
 
@@ -29,13 +32,14 @@ void max22200_init_hardware(void) {
         .queue_size = 1
     };
     spi_bus_add_device(SPI3_HOST, &dev_cfg, &spi_handle);
+    max22200_init_procedure();
 }
 
 void max22200_init_procedure(void) {
     gpio_set_level(PIN_ENABLE, 1);
     usleep(500);
 
-    uint32 status_val = max22200_read(MAX22200_ADDR_STATUS);
+    uint32_t status_val = max22200_read(MAX22200_ADDR_STATUS);
 
     if(status_val == 0x00000000 || status_val == 0xFFFFFFFF) {
         ESP_LOGE("BLAD", "STATUS niepoprawny. Sprawdź kable i zasilanie!\n");
@@ -44,5 +48,16 @@ void max22200_init_procedure(void) {
     status_val = MAX22200_STATUS_ACTIVE;
     max22200_write(MAX22200_ADDR_STATUS, status_val);
 
+    //KROK 3 do zrobienia
+
+    status_val = max22200_read(MAX22200_ADDR_STATUS);
+    uint8_t last_cmd_status_byte = status_val & 0xFF;
+    // Sprawdzenie czy flaga UVM zniknęła oraz czy brak błędu komunikacji COM_ERR (0x04)
+    if ((status_val & MAX22200_STATUS_UVM) || (last_cmd_status_byte == 0x04)) {
+        ESP_LOGE("BLAD", "Wykryto flaga błędu! UVM=%ld, Status Byte=0x%02X\n",
+               (status_val & MAX22200_STATUS_UVM) >> 1, last_cmd_status_byte);
+    }
+
+    ESP_LOGE("MAX22200 OK", "Inicjalizacja zakończona SUKCESEM! Układ jest gotowy.\n");
 
 }
