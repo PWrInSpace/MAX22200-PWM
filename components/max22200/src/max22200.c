@@ -40,3 +40,19 @@ uint32_t max22200_read(uint8_t channel) {
 
     return ((uint32_t)rx[0] << 24) | ((uint32_t)rx[1] << 16) | ((uint32_t)rx[2] << 8) | rx[3];
 }
+
+void max22200_set_channel_state(uint8_t channel, bool enable) {
+    if (channel > 7) {
+        ESP_LOGE("BLAD", "niepoprawny kanal");
+        return;
+    }
+    uint32_t status_val = max22200_read(MAX22200_ADDR_STATUS);
+
+    if(enable) {
+        status_val |= (0x01 << (24 + channel));
+    } else {
+        status_val &= ~(0x01 << (24 + channel));
+    }
+
+    max22200_write(MAX22200_ADDR_STATUS, status_val);
+}
