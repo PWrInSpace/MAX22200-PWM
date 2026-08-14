@@ -56,3 +56,14 @@ void max22200_set_channel_state(uint8_t channel, bool enable) {
 
     max22200_write(MAX22200_ADDR_STATUS, status_val);
 }
+//write = 1, read = 0, 8bit = 1, 32bit = 0
+uint8_t build_cmd_byte(bool write_or_read, uint8_t ch_addr, bool spi_size) {
+    return ((write_or_read ? MAX22200_CMD_WRITE  : MAX22200_CMD_READ) | (ch_addr & 0x0F) << MAX22200_CMD_ADDR_POS | (spi_size ? MAX22200_CMD_8BIT_MODE   : MAX22200_CMD_32BIT_MODE ));
+}
+
+void max22200_write_command(uint8_t cmd_byte) {
+    gpio_set_level(PIN_CMD, 1);
+    spi_transaction_t t = { .length = 8, .tx_buffer = &cmd_byte, .rx_buffer = NULL};
+    spi_device_polling_transmit(spi_handle, &t);
+    gpio_set_level(PIN_CMD, 0);
+}
