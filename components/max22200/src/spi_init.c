@@ -39,18 +39,18 @@ void max22200_init_procedure(void) {
     gpio_set_level(PIN_ENABLE, 1);
     usleep(500);
 
-    uint32_t status_val = max22200_read(MAX22200_ADDR_STATUS);
+    uint32_t status_val = max22200_read_32bit(MAX22200_ADDR_STATUS);
 
     if(status_val == 0x00000000 || status_val == 0xFFFFFFFF) {
         ESP_LOGE("BLAD", "STATUS niepoprawny. Sprawdź kable i zasilanie!\n");
     }
 
     status_val = MAX22200_STATUS_ACTIVE;
-    max22200_write(MAX22200_ADDR_STATUS, status_val);
+    max22200_write_32bit(MAX22200_ADDR_STATUS, status_val);
 
     //KROK 3 do zrobienia
 
-    status_val = max22200_read(MAX22200_ADDR_STATUS);
+    status_val = max22200_read_32bit(MAX22200_ADDR_STATUS);
     uint8_t last_cmd_status_byte = status_val & 0xFF;
     // Sprawdzenie czy flaga UVM zniknęła oraz czy brak błędu komunikacji COM_ERR (0x04)
     if ((status_val & MAX22200_STATUS_UVM) || (last_cmd_status_byte == 0x04)) {
