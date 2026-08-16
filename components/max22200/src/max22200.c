@@ -2,12 +2,21 @@
 #include "max22200_regs.h"
 #include "spi_init.h"
 #include "esp_log.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/semphr.h"
+
+#define MAX22200_TIMEOUT 100
 
 static spi_device_handle_t spi_handle;
+SemaphoreHandle_t mutex;
 
 //32bit
 
 void max22200_write_32bit(uint8_t channel, uint32_t val) {
+    if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
+        ESP_LOGE("BLAD", "timeout");
+    }
+
     uint8_t cmd = build_cmd_byte(true, channel, false);
     uint8_t data[4] = { (val >> 24) & 0xFF, (val >> 16) & 0xFF, (val >> 8) & 0xFF, val & 0xFF };
 
@@ -18,9 +27,14 @@ void max22200_write_32bit(uint8_t channel, uint32_t val) {
     spi_transaction_t t2 = { .length = 32, .tx_buffer = data };
     spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
+
+    xSemaphoreGive(mutex);
 }
 
 uint32_t max22200_read_32bit(uint8_t channel) {
+    if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
+        ESP_LOGE("BLAD", "timeout");
+    }
     uint8_t cmd = build_cmd_byte(false, channel, false);
     uint8_t rx[4] = {0};
 
@@ -32,12 +46,17 @@ uint32_t max22200_read_32bit(uint8_t channel) {
     spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
+    xSemaphoreGive(mutex);
+
     return ((uint32_t)rx[0] << 24) | ((uint32_t)rx[1] << 16) | ((uint32_t)rx[2] << 8) | rx[3];
 }
 
 //8bit
 
 void max22200_write_8bit(uint8_t channel, uint8_t val) {
+    if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
+        ESP_LOGE("BLAD", "timeout");
+    }
     uint8_t cmd = build_cmd_byte(true, channel, false);
     uint8_t data[1] = { val & 0xFF };
 
@@ -48,9 +67,14 @@ void max22200_write_8bit(uint8_t channel, uint8_t val) {
     spi_transaction_t t2 = { .length = 8, .tx_buffer = data };
     spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
+
+    xSemaphoreGive(mutex);
 }
 
 uint8_t max22200_read_8bit(uint8_t channel) {
+    if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
+        ESP_LOGE("BLAD", "timeout");
+    }
     uint8_t cmd = build_cmd_byte(false, channel, false);
     uint8_t rx[1] = {0};
 
@@ -61,6 +85,8 @@ uint8_t max22200_read_8bit(uint8_t channel) {
     spi_transaction_t t2 = { .length = 8, .rx_buffer = rx };
     spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
+
+    xSemaphoreGive(mutex);
 
     return rx[0];
 }
