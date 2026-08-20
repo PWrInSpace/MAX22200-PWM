@@ -15,7 +15,7 @@
 #define PIN_CMD    4
 #define PIN_ENABLE 2
 
-void max22200_init_hardware(void);
-void max22200_init_procedure(void);
+esp_err_t max22200_init_hardware(void);
+esp_err_t max22200_init_procedure(void);
 
 #endif //MAX22000_SPI

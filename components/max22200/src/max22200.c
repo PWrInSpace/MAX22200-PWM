@@ -12,83 +12,115 @@ SemaphoreHandle_t mutex;
 
 //32bit
 
-void max22200_write_32bit(uint8_t channel, uint32_t val) {
+esp_err_t max22200_write_32bit(uint8_t channel, uint32_t val) {
+    if(channel > 7) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
-        ESP_LOGE("BLAD", "timeout");
+        return ESP_ERR_TIMEOUT;
     }
 
     uint8_t cmd = build_cmd_byte(true, channel, false);
     uint8_t data[4] = { (val >> 24) & 0xFF, (val >> 16) & 0xFF, (val >> 8) & 0xFF, val & 0xFF };
 
-    max22200_write_command(cmd);
+    esp_err_t ret = max22200_write_command(cmd);
+    if(ret != ESP_OK) {
+        xSemaphoreGive(mutex);
+        return ret;
+    }
 
     gpio_set_level(PIN_CMD, 0);
     gpio_set_level(PIN_CS, 0);
     spi_transaction_t t2 = { .length = 32, .tx_buffer = data };
-    spi_device_polling_transmit(spi_handle, &t2);
+    ret = spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
     xSemaphoreGive(mutex);
+    return ret;
 }
 
-uint32_t max22200_read_32bit(uint8_t channel) {
+esp_err_t max22200_read_32bit(uint8_t channel, uint32_t *output) {
+    if(channel > 7 || output == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
-        ESP_LOGE("BLAD", "timeout");
+        return ESP_ERR_TIMEOUT;
     }
     uint8_t cmd = build_cmd_byte(false, channel, false);
     uint8_t rx[4] = {0};
 
-    max22200_write_command(cmd);
+    esp_err_t ret = max22200_write_command(cmd);
+    if(ret != ESP_OK) {
+        xSemaphoreGive(mutex);
+        return ret;
+    }
 
     gpio_set_level(PIN_CMD, 0);
     gpio_set_level(PIN_CS, 0);
     spi_transaction_t t2 = { .length = 32, .rx_buffer = rx };
-    spi_device_polling_transmit(spi_handle, &t2);
+    ret = spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
     xSemaphoreGive(mutex);
-
-    return ((uint32_t)rx[0] << 24) | ((uint32_t)rx[1] << 16) | ((uint32_t)rx[2] << 8) | rx[3];
+    return ret;
 }
 
 //8bit
 
-void max22200_write_8bit(uint8_t channel, uint8_t val) {
+esp_err_t max22200_write_8bit(uint8_t channel, uint8_t val) {
+    if(channel > 7) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
-        ESP_LOGE("BLAD", "timeout");
+        return ESP_ERR_TIMEOUT;
     }
     uint8_t cmd = build_cmd_byte(true, channel, false);
     uint8_t data[1] = { val & 0xFF };
 
-    max22200_write_command(cmd);
+    esp_err_t ret = max22200_write_command(cmd);
+    if(ret != ESP_OK) {
+        xSemaphoreGive(mutex);
+        return ret;
+    }
 
     gpio_set_level(PIN_CMD, 0);
     gpio_set_level(PIN_CS, 0);
     spi_transaction_t t2 = { .length = 8, .tx_buffer = data };
-    spi_device_polling_transmit(spi_handle, &t2);
+    ret = spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
     xSemaphoreGive(mutex);
+    return ret;
 }
 
-uint8_t max22200_read_8bit(uint8_t channel) {
+esp_err_t max22200_read_8bit(uint8_t channel, uint8_t *output) {
+    if(channel > 7 || output == NULL) {
+        return ESP_ERR_INVALID_ARG;
+    }
+
     if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
-        ESP_LOGE("BLAD", "timeout");
+        return ESP_ERR_TIMEOUT;
     }
     uint8_t cmd = build_cmd_byte(false, channel, false);
     uint8_t rx[1] = {0};
 
-    max22200_write_command(cmd);
+    esp_err_t ret = max22200_write_command(cmd);
+    if(ret != ESP_OK) {
+        xSemaphoreGive(mutex);
+        return ret;
+    }
 
     gpio_set_level(PIN_CMD, 0);
     gpio_set_level(PIN_CS, 0);
     spi_transaction_t t2 = { .length = 8, .rx_buffer = rx };
-    spi_device_polling_transmit(spi_handle, &t2);
+    ret = spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
     xSemaphoreGive(mutex);
-
-    return rx[0];
+    return ret;
 }
 
 void max22200_set_channel_state(uint8_t channel, bool enable) {
@@ -96,7 +128,8 @@ void max22200_set_channel_state(uint8_t channel, bool enable) {
         ESP_LOGE("BLAD", "niepoprawny kanal");
         return;
     }
-    uint32_t status_val = max22200_read_32bit(MAX22200_ADDR_STATUS);
+    uint32_t status_val;
+    esp_err_t err = max22200_read_32bit(MAX22200_ADDR_STATUS, &status_val);
 
     if(enable) {
         status_val |= (0x01 << (24 + channel));
@@ -111,11 +144,12 @@ uint8_t build_cmd_byte(bool write_or_read, uint8_t ch_addr, bool spi_size) {
     return ((write_or_read ? MAX22200_CMD_WRITE  : MAX22200_CMD_READ) | (ch_addr & 0x0F) << MAX22200_CMD_ADDR_POS | (spi_size ? MAX22200_CMD_8BIT_MODE   : MAX22200_CMD_32BIT_MODE ));
 }
 
-void max22200_write_command(uint8_t cmd_byte) {
+esp_err_t max22200_write_command(uint8_t cmd_byte) {
     gpio_set_level(PIN_CMD, 1);
     gpio_set_level(PIN_CS, 0);
     spi_transaction_t t = { .length = 8, .tx_buffer = &cmd_byte, .rx_buffer = NULL};
-    spi_device_polling_transmit(spi_handle, &t);
+    esp_err_t ret = spi_device_polling_transmit(spi_handle, &t);
     gpio_set_level(PIN_CS, 1);
     gpio_set_level(PIN_CMD, 0);
+    return ret;
 }
