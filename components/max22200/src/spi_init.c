@@ -4,7 +4,8 @@
 #include <unistd.h>
 #include "esp_log.h"
 
-static spi_device_handle_t spi_handle;
+spi_device_handle_t spi_handle = NULL;
+SemaphoreHandle_t mutex;
 
 esp_err_t max22200_init_hardware(void) {
     //GPIO
@@ -47,6 +48,8 @@ esp_err_t max22200_init_hardware(void) {
         return ret;
     }
     
+    mutex = xSemaphoreCreateMutex();
+
     return ret;
 }
 

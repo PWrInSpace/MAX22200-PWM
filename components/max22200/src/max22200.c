@@ -7,9 +7,6 @@
 
 #define MAX22200_TIMEOUT 100
 
-static spi_device_handle_t spi_handle;
-SemaphoreHandle_t mutex;
-
 //32bit
 
 esp_err_t max22200_write_32bit(uint8_t channel, uint32_t val) {
@@ -63,6 +60,8 @@ esp_err_t max22200_read_32bit(uint8_t channel, uint32_t *output) {
     ret = spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
+    *output = ((rx[0] >> 24) & 0xFF) | ((rx[1] >> 16) & 0xFF) | ((rx[2] >> 8) & 0xFF) | (rx[3] & 0xFF);
+
     xSemaphoreGive(mutex);
     return ret;
 }
@@ -77,7 +76,7 @@ esp_err_t max22200_write_8bit(uint8_t channel, uint8_t val) {
     if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
         return ESP_ERR_TIMEOUT;
     }
-    uint8_t cmd = build_cmd_byte(true, channel, false);
+    uint8_t cmd = build_cmd_byte(true, channel, true);
     uint8_t data[1] = { val & 0xFF };
 
     esp_err_t ret = max22200_write_command(cmd);
@@ -97,14 +96,14 @@ esp_err_t max22200_write_8bit(uint8_t channel, uint8_t val) {
 }
 
 esp_err_t max22200_read_8bit(uint8_t channel, uint8_t *output) {
-    if(channel > 7 || output == NULL) {
+    if(channel > 10 || output == NULL) {
         return ESP_ERR_INVALID_ARG;
     }
 
     if(xSemaphoreTake(mutex, pdMS_TO_TICKS(MAX22200_TIMEOUT)) != pdTRUE) {
         return ESP_ERR_TIMEOUT;
     }
-    uint8_t cmd = build_cmd_byte(false, channel, false);
+    uint8_t cmd = build_cmd_byte(false, channel, true);
     uint8_t rx[1] = {0};
 
     esp_err_t ret = max22200_write_command(cmd);
@@ -119,12 +118,14 @@ esp_err_t max22200_read_8bit(uint8_t channel, uint8_t *output) {
     ret = spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
+    *output = rx[0] & 0xFF;
+
     xSemaphoreGive(mutex);
     return ret;
 }
 
 void max22200_set_channel_state(uint8_t channel, bool enable) {
-    if (channel > 7) {
+    if (channel > 10) {
         ESP_LOGE("BLAD", "niepoprawny kanal");
         return;
     }
