@@ -90,3 +90,11 @@ esp_err_t max22200_init_procedure(void) {
     return ret;
 
 }
+//hfs: 1 - half full scale, 0 - full scale; 
+esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, uint8_t hit, uint8_t hit_time, bool current_voltage, uint8_t frequency, bool src_enable, bool ol_enable, bool dpm_enable, bool hhf_enable) {
+    if(channel > 8 || channel == 0) {
+        return ESP_ERR_INVALID_ARG;
+    }
+    uint32_t setup_val;
+    return ESP_OK;
+}

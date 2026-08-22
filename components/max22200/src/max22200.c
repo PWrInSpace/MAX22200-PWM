@@ -10,7 +10,7 @@
 //32bit
 
 esp_err_t max22200_write_32bit(uint8_t channel, uint32_t val) {
-    if(channel > 7) {
+    if(channel > 10) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -38,7 +38,7 @@ esp_err_t max22200_write_32bit(uint8_t channel, uint32_t val) {
 }
 
 esp_err_t max22200_read_32bit(uint8_t channel, uint32_t *output) {
-    if(channel > 7 || output == NULL) {
+    if(channel > 10 || output == NULL) {
         return ESP_ERR_INVALID_ARG;
     }
 
@@ -69,7 +69,7 @@ esp_err_t max22200_read_32bit(uint8_t channel, uint32_t *output) {
 //8bit
 
 esp_err_t max22200_write_8bit(uint8_t channel, uint8_t val) {
-    if(channel > 7) {
+    if(channel > 10) {
         return ESP_ERR_INVALID_ARG;
     }
 
