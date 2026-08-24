@@ -7,6 +7,8 @@
 spi_device_handle_t spi_handle = NULL;
 SemaphoreHandle_t mutex;
 
+
+
 esp_err_t max22200_init_hardware(void) {
     //GPIO
     gpio_config_t io_conf = {
@@ -66,6 +68,13 @@ esp_err_t max22200_init_procedure(void) {
         return ESP_ERR_INVALID_STATE;
     }
     
+    MAX22200_board_config_t channel_mode_setup;
+    channel_mode_setup.pair_01 = PAIR_MODE_INDEPENDENT;
+    channel_mode_setup.pair_23 = PAIR_MODE_INDEPENDENT;
+    channel_mode_setup.pair_45 = PAIR_MODE_INDEPENDENT;
+    channel_mode_setup.pair_67 = PAIR_MODE_INDEPENDENT; //67
+    status_channel_mode_setup(&status_val, &channel_mode_setup);
+
     status_val = MAX22200_STATUS_ACTIVE;
     ret = max22200_write_32bit(MAX22200_ADDR_STATUS, status_val);
     if(ret != ESP_OK) {
@@ -113,4 +122,11 @@ esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, 
     }
 
     return ret;
+}
+
+void status_channel_mode_setup(uint32_t *status_val, MAX22200_board_config_t *config) {
+    *status_val |= ((config->pair_01 & 0x03) << 8);
+    *status_val |= ((config->pair_23 & 0x03) << 10);
+    *status_val |= ((config->pair_45 & 0x03) << 12);
+    *status_val |= ((config->pair_67 & 0x03) << 14);
 }

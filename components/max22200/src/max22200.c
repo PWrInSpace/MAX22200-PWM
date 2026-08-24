@@ -125,7 +125,7 @@ esp_err_t max22200_read_8bit(uint8_t channel, uint8_t *output) {
 }
 
 void max22200_set_channel_state(uint8_t channel, bool enable) {
-    if (channel > 10) {
+    if (channel > 7) {
         ESP_LOGE("BLAD", "niepoprawny kanal");
         return;
     }
