@@ -20,6 +20,6 @@ extern SemaphoreHandle_t mutex;
 
 esp_err_t max22200_init_hardware(void);
 esp_err_t max22200_init_procedure(void);
-esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, uint8_t hit, uint8_t hit_time, bool current_voltage, uint8_t frequency, bool src_enable, bool ol_enable, bool dpm_enable, bool hhf_enable);
+esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, uint8_t hit, uint8_t hit_time, bool current_or_voltage, bool high_or_low_side, uint8_t frequency, bool src_enable, bool ol_enable, bool dpm_enable, bool hhf_enable);
 
 #endif //MAX22000_SPI

@@ -72,7 +72,16 @@ esp_err_t max22200_init_procedure(void) {
         return ret;
     }
 
-    //KROK 3 do zrobienia
+    //ustawic sensowne wartosci, takie jakie beda potrzebne
+    channel_setup(MAX22200_ADDR_CH0, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+    channel_setup(MAX22200_ADDR_CH1, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+    channel_setup(MAX22200_ADDR_CH2, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+    channel_setup(MAX22200_ADDR_CH3, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+    channel_setup(MAX22200_ADDR_CH4, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+    channel_setup(MAX22200_ADDR_CH5, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+    channel_setup(MAX22200_ADDR_CH6, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+    channel_setup(MAX22200_ADDR_CH7, 1, 127, 1, 127, 255, 1, 0, 3, 1, 1, 0, 0);
+
 
     ret = max22200_read_32bit(MAX22200_ADDR_STATUS, &status_val);
     if(ret != ESP_OK) {
@@ -91,10 +100,17 @@ esp_err_t max22200_init_procedure(void) {
 
 }
 //hfs: 1 - half full scale, 0 - full scale; 
-esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, uint8_t hit, uint8_t hit_time, bool current_voltage, uint8_t frequency, bool src_enable, bool ol_enable, bool dpm_enable, bool hhf_enable) {
+esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, uint8_t hit, uint8_t hit_time, bool current_or_voltage, bool high_or_low_side, uint8_t frequency, bool src_enable, bool ol_enable, bool dpm_enable, bool hhf_enable) {
     if(channel > 8 || channel == 0) {
         return ESP_ERR_INVALID_ARG;
     }
-    uint32_t setup_val;
-    return ESP_OK;
+    uint32_t setup_val = (MAX22200_HFS_MASK & hfs) << MAX22200_HFS_POS | (MAX22200_HOLD_MASK & hold) << MAX22200_HOLD_POS | (MAX22200_TRGNSP_IO_MASK & trig_spi) << MAX22200_TRGNSP_IO_POS | (MAX22200_HIT_MASK & hit) << MAX22200_HIT_POS | (MAX22200_HIT_T_MASK & hit_time) << MAX22200_HIT_T_POS | (MAX22200_VDRNCDR_MASK & current_or_voltage) << MAX22200_VDRNCDR_POS | (MAX22200_HSNLS_MASK & high_or_low_side) << MAX22200_HSNLS_POS | (MAX22200_FREQ_CFG_MASK & frequency) << MAX22200_FREQ_CFG_POS | (MAX22200_SRC_MASK & src_enable) << MAX22200_SRC_POS | (MAX22200_OL_EN_MASK & ol_enable) << MAX22200_OL_EN_POS | (MAX22200_DPM_EN_MASK & dpm_enable) << MAX22200_DPM_EN_POS | (MAX22200_HHF_EN_MASK & hhf_enable) << MAX22200_HHF_EN_POS;
+
+    esp_err_t ret = max22200_write_32bit(channel, setup_val);
+    if(ret != ESP_OK) {
+        ESP_LOGE("blad", "kanal %ld nie zostal ustawiony poprawnie", channel);
+        return ret;
+    }
+
+    return ret;
 }
