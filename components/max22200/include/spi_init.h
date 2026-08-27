@@ -34,6 +34,7 @@ typedef struct {
 esp_err_t max22200_init_hardware(void);
 esp_err_t max22200_init_procedure(void);
 esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, uint8_t hit, uint8_t hit_time, bool current_or_voltage, bool high_or_low_side, uint8_t frequency, bool src_enable, bool ol_enable, bool dpm_enable, bool hhf_enable);
-void status_channel_mode_setup(uint32_t* status_val, MAX22200_board_config_t* config);
+
+void max22200_test_channel(uint8_t channel, uint8_t number_of_tests);
 
 #endif //MAX22000_SPI

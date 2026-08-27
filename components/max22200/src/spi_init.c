@@ -3,11 +3,12 @@
 #include "max22200_regs.h"
 #include <unistd.h>
 #include "esp_log.h"
+#include "esp_random.h"
 
 spi_device_handle_t spi_handle = NULL;
 SemaphoreHandle_t mutex;
 
-
+static void status_channel_mode_setup(uint32_t *status_val, MAX22200_board_config_t *config);
 
 esp_err_t max22200_init_hardware(void) {
     //GPIO
@@ -117,16 +118,33 @@ esp_err_t channel_setup(uint8_t channel, bool hfs, uint8_t hold, bool trig_spi, 
 
     esp_err_t ret = max22200_write_32bit(channel, setup_val);
     if(ret != ESP_OK) {
-        ESP_LOGE("blad", "kanal %ld nie zostal ustawiony poprawnie", channel);
+        ESP_LOGE("BLAD", "kanal %ld nie zostal ustawiony poprawnie", channel);
         return ret;
     }
 
     return ret;
 }
 
-void status_channel_mode_setup(uint32_t *status_val, MAX22200_board_config_t *config) {
+static void status_channel_mode_setup(uint32_t *status_val, MAX22200_board_config_t *config) {
     *status_val |= ((config->pair_01 & 0x03) << 8);
     *status_val |= ((config->pair_23 & 0x03) << 10);
     *status_val |= ((config->pair_45 & 0x03) << 12);
     *status_val |= ((config->pair_67 & 0x03) << 14);
+}
+
+
+void max22200_test_channel(uint8_t channel, uint8_t number_of_tests) {
+    uint32_t test_pattern;
+    uint32_t read_value;
+    uint8_t succesful_tests = 0;
+
+    for(uint8_t test = 0; test < number_of_tests; ++test) {
+        test_pattern = esp_random();
+        max22200_write_32bit(channel, test_pattern);
+        max22200_read_32bit(channel, &read_value);
+        if(test_pattern == read_value) {
+            succesful_tests++;
+        }
+    }
+    ESP_LOGE("TEST", "kanal %ld wykonal %ld/%ld testow poprawnie", channel, succesful_tests, number_of_tests);
 }

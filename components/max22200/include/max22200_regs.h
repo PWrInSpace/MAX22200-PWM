@@ -91,7 +91,7 @@
 #define MAX22200_STATUS_F_POS      0
 
 #define MAX22200_STATUS_OVT        (0x01 << 7)
-#define MAX22200_STATUS_OCP        (0x01 << 6)
+#define MAX22200_STATUS_OCP        (0x01 << 6) 
 #define MAX22200_STATUS_OLF        (0x01 << 5)
 #define MAX22200_STATUS_HHF        (0x01 << 4)
 #define MAX22200_STATUS_DPM        (0x01 << 3)
