@@ -154,3 +154,25 @@ esp_err_t max22200_write_command(uint8_t cmd_byte) {
     gpio_set_level(PIN_CMD, 0);
     return ret;
 }
+
+esp_err_t max22200_change_channel_settings(uint8_t channel, uint8_t hit, uint8_t hit_time, uint8_t hold, uint8_t frequency, bool current_or_voltage, bool high_or_low_side) {
+    uint32_t channel_value;
+    esp_err_t ret = max22200_read_32bit(channel, &channel_value);
+    if(ret != ESP_OK) {
+        return ret;
+    }
+
+    channel_value |= (MAX22200_HIT_MASK & hit) << MAX22200_HIT_POS;
+    channel_value |= (MAX22200_HIT_T_MASK & hit) << MAX22200_HIT_T_POS;
+    channel_value |= (MAX22200_HOLD_MASK & hit) << MAX22200_HOLD_POS;
+    channel_value |= (MAX22200_FREQ_CFG_MASK & hit) << MAX22200_FREQ_CFG_POS;
+    channel_value |= (MAX22200_VDRNCDR_MASK & hit) << MAX22200_VDRNCDR_POS;
+    channel_value |= (MAX22200_HSNLS_MASK & hit) << MAX22200_HSNLS_POS;
+
+    ret = max22200_write_32bit(channel, channel_value);
+    if(ret != ESP_OK) {
+        return ret;
+    }
+
+    return ret;
+}
