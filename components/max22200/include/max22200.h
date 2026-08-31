@@ -17,6 +17,13 @@ typedef struct {
     bool ovt;
 } MAX22200_Status_flags_t;
 
+typedef struct {
+    bool ocp;
+    bool hhf;
+    bool olf;
+    bool dpm;
+} MAX22200_Channel_flags_t;
+
 esp_err_t max22200_write_32bit(uint8_t channel, uint32_t val);
 esp_err_t max22200_read_32bit(uint8_t channel, uint32_t *output);
 esp_err_t max22200_write_8bit(uint8_t channel, uint8_t val);

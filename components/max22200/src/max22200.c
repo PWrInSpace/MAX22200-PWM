@@ -238,3 +238,23 @@ MAX22200_Status_flags_t max22200_status_flag_read(bool log_flag_states) {
 
     return flags;
 }
+
+static MAX22200_Channel_flags_t get_channel_fault_flags(uint8_t channel, uint32_t fault_val) {
+    if(channel == 0 || channel > 7) {
+        ESP_LOGE("BLAD", "niepoprawny kanal");
+        return (MAX22200_Channel_flags_t) {
+            .ocp  = 0x01,
+            .hhf  = 0x01,  
+            .olf  = 0x01,
+            .dpm = 0x01};
+    }
+
+    MAX22200_Channel_flags_t flags = {
+        .ocp = (fault_val >> (channel + 24)) & 0x01,
+        .hhf = (fault_val >> (channel + 16)) & 0x01,  
+        .olf = (fault_val >> (channel + 8)) & 0x01,
+        .dpm = (fault_val >> channel) & 0x01,
+    };
+
+    return flags;
+}
