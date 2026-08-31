@@ -241,11 +241,11 @@ MAX22200_Status_flags_t max22200_status_flag_read(bool log_flag_states) {
 
 static MAX22200_Channel_flags_t get_channel_fault_flags(uint8_t channel, uint32_t fault_val) {
     if(channel == 0 || channel > 7) {
-        ESP_LOGE("BLAD", "niepoprawny kanal");
+        ESP_LOGE("ERROR", "Wrong channel");
         return (MAX22200_Channel_flags_t) {
-            .ocp  = 0x01,
-            .hhf  = 0x01,  
-            .olf  = 0x01,
+            .ocp = 0x01,
+            .hhf = 0x01,  
+            .olf = 0x01,
             .dpm = 0x01};
     }
 
@@ -262,8 +262,17 @@ static MAX22200_Channel_flags_t get_channel_fault_flags(uint8_t channel, uint32_
 MAX22200_Channel_flags_t max22200_diagnose_channel(uint8_t channel) {
     uint32_t fault_val;
     esp_err_t err = max22200_read_32bit(MAX22200_ADDR_FAULT, &fault_val);
-
+    if(err != ESP_OK) {
+        ESP_LOGE("ERROR", "Error while reading fault registry");
+        return (MAX22200_Channel_flags_t) {
+            .ocp = 0x01,
+            .hhf = 0x01,  
+            .olf = 0x01,
+            .dpm = 0x01};
+    }
     MAX22200_Channel_flags_t flags = get_channel_fault_flags(channel, fault_val);
+
+    ESP_LOGE("FLAG CHECK", "Flags for channel %ld", channel - 1);
 
     if(flags.ocp) {
         ESP_LOGE("WARNING", "OCP FLAG, Overcurrent Protection");
@@ -297,5 +306,19 @@ MAX22200_Fault_flags_t max22200_get_all_fault_flags() {
     MAX22200_Fault_flags_t flags;
     esp_err_t err = max22200_read_32bit(MAX22200_ADDR_FAULT, &fault_val);
 
-    //wszystkie kanaly wziac i wrzucic do struktury
+    if(err != ESP_OK) {
+        ESP_LOGE("ERROR", "Error reading fault registry");
+        return flags;
+    }
+
+    flags.channel_0 = get_channel_fault_flags(MAX22200_ADDR_CH0);
+    flags.channel_1 = get_channel_fault_flags(MAX22200_ADDR_CH1);
+    flags.channel_2 = get_channel_fault_flags(MAX22200_ADDR_CH2);
+    flags.channel_3 = get_channel_fault_flags(MAX22200_ADDR_CH3);
+    flags.channel_4 = get_channel_fault_flags(MAX22200_ADDR_CH4);
+    flags.channel_5 = get_channel_fault_flags(MAX22200_ADDR_CH5);
+    flags.channel_6 = get_channel_fault_flags(MAX22200_ADDR_CH6);
+    flags.channel_7 = get_channel_fault_flags(MAX22200_ADDR_CH7);
+
+    return flags;
 }
