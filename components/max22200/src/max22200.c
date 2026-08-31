@@ -258,3 +258,44 @@ static MAX22200_Channel_flags_t get_channel_fault_flags(uint8_t channel, uint32_
 
     return flags;
 }
+
+MAX22200_Channel_flags_t max22200_diagnose_channel(uint8_t channel) {
+    uint32_t fault_val;
+    esp_err_t err = max22200_read_32bit(MAX22200_ADDR_FAULT, &fault_val);
+
+    MAX22200_Channel_flags_t flags = get_channel_fault_flags(channel, fault_val);
+
+    if(flags.ocp) {
+        ESP_LOGE("WARNING", "OCP FLAG, Overcurrent Protection");
+    } else {
+        ESP_LOGE("OK", "OCP FLAG, Normal operation");
+    }    
+    
+    if(flags.hhf) {
+        ESP_LOGE("WARNING", "HHF FLAG, HIT Current Not Reached");
+    } else {
+        ESP_LOGE("OK", "HHF FLAG, Normal operation");
+    }
+        
+    if(flags.olf) {
+        ESP_LOGE("WARNING", "OLF FLAG, Open-Load Detection");
+    } else {
+        ESP_LOGE("OK", "OLF FLAG, Normal operation");
+    }
+        
+    if(flags.dpm) {
+        ESP_LOGE("WARNING", "DPM FLAG, Detection of Plunger Movement");
+    } else {
+        ESP_LOGE("OK", "DPM FLAG, Normal operation");
+    }
+
+    return flags;
+}
+
+MAX22200_Fault_flags_t max22200_get_all_fault_flags() {
+    uint32_t fault_val;
+    MAX22200_Fault_flags_t flags;
+    esp_err_t err = max22200_read_32bit(MAX22200_ADDR_FAULT, &fault_val);
+
+    //wszystkie kanaly wziac i wrzucic do struktury
+}

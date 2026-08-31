@@ -24,6 +24,17 @@ typedef struct {
     bool dpm;
 } MAX22200_Channel_flags_t;
 
+typedef struct {
+    MAX22200_Channel_flags_t channel_0;
+    MAX22200_Channel_flags_t channel_1;
+    MAX22200_Channel_flags_t channel_2;
+    MAX22200_Channel_flags_t channel_3;
+    MAX22200_Channel_flags_t channel_4;
+    MAX22200_Channel_flags_t channel_5;
+    MAX22200_Channel_flags_t channel_6;
+    MAX22200_Channel_flags_t channel_7;
+} MAX22200_Fault_flags_t;
+
 esp_err_t max22200_write_32bit(uint8_t channel, uint32_t val);
 esp_err_t max22200_read_32bit(uint8_t channel, uint32_t *output);
 esp_err_t max22200_write_8bit(uint8_t channel, uint8_t val);
@@ -33,5 +44,7 @@ uint8_t build_cmd_byte(bool write_or_read, uint8_t ch_addr, bool spi_size);
 esp_err_t max22200_write_command(uint8_t cmd_byte);
 esp_err_t max22200_change_channel_settings(uint8_t channel, uint8_t hit, uint8_t hit_time, uint8_t hold, uint8_t frequency, bool current_or_voltage, bool high_or_low_side);
 MAX22200_Status_flags_t max22200_status_flag_read(bool log_flag_states);
+MAX22200_Channel_flags_t max22200_diagnose_channel(uint8_t channel);
+MAX22200_Fault_flags_t max22200_get_all_fault_flags();
 
 #endif //MAX22200_H
