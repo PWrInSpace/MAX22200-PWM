@@ -176,3 +176,65 @@ esp_err_t max22200_change_channel_settings(uint8_t channel, uint8_t hit, uint8_t
 
     return ret;
 }
+
+MAX22200_Status_flags_t max22200_status_flag_read(bool log_flag_states) {
+    uint32_t status_val;
+    max22200_read_32bit(MAX22200_ADDR_STATUS, &status_val);
+
+    MAX22200_Status_flags_t flags = {
+        .uvm = (status_val >> 1) & 0x01,
+        .comer = (status_val >> 2) & 0x01,
+        .dpm = (status_val >> 3) & 0x01,
+        .hhf  = (status_val >> 4) & 0x01,
+        .olf  = (status_val >> 5) & 0x01,
+        .ocp  = (status_val >> 6) & 0x01,
+        .ovt = (status_val >> 7) & 0x01
+    };
+
+    if (log_flag_states) {
+        if(flags.uvm) {
+            ESP_LOGE("WARNING", "UVM FLAG, VM UVLO event has been detected");
+        } else {
+            ESP_LOGE("OK", "UVM FLAG, Normal operation");
+        }
+
+        if(flags.comer) {
+            ESP_LOGE("WARNING", "COMER FLAG, SPI Write comunication error detected");
+        } else {
+            ESP_LOGE("OK", "COMER FLAG, No SPI error detected");
+        }
+        
+        if(flags.dpm) {
+            ESP_LOGE("WARNING", "DPM FLAG, At least 1 channel has detected a Detection of Plunger Movement Fault");
+        } else {
+            ESP_LOGE("OK", "DPM FLAG, Normal operation");
+        }
+        
+        if(flags.hhf) {
+            ESP_LOGE("WARNING", "HHF FLAG, At least 1 channel has detected a HIT current fault");
+        } else {
+            ESP_LOGE("OK", "HHF FLAG, Normal operation");
+        }
+        
+        if(flags.olf) {
+            ESP_LOGE("WARNING", "OLF FLAG, At least 1 channel has detected an open load fault");
+        } else {
+            ESP_LOGE("OK", "OLF FLAG, Normal operation");
+        }
+        
+        if(flags.ocp) {
+            ESP_LOGE("WARNING", "OCP FLAG, At least 1 channel has detected an overcurrent event");
+        } else {
+            ESP_LOGE("OK", "OCP FLAG, Normal operation");
+        }
+        
+        if(flags.ovt) {
+            ESP_LOGE("WARNING", "OVT FLAG, Chip is in thermal protection");    
+        } else {
+            ESP_LOGE("OK", "OVT FLAG, Normal operation");
+        }
+
+    }
+
+    return flags;
+}
