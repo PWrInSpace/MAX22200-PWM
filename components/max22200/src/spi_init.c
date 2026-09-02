@@ -11,6 +11,7 @@ SemaphoreHandle_t mutex;
 static void status_channel_mode_setup(uint32_t *status_val, MAX22200_board_config_t *config);
 
 esp_err_t max22200_init_hardware(void) {
+    mutex = xSemaphoreCreateMutex();
     //GPIO
     gpio_config_t io_conf = {
         .intr_type = GPIO_INTR_DISABLE,
@@ -50,8 +51,6 @@ esp_err_t max22200_init_hardware(void) {
     if(ret != ESP_OK) {
         return ret;
     }
-    
-    mutex = xSemaphoreCreateMutex();
 
     return ret;
 }

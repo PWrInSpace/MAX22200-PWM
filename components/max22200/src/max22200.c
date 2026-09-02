@@ -60,7 +60,7 @@ esp_err_t max22200_read_32bit(uint8_t channel, uint32_t *output) {
     ret = spi_device_polling_transmit(spi_handle, &t2);
     gpio_set_level(PIN_CS, 1);
 
-    *output = ((rx[0] >> 24) & 0xFF) | ((rx[1] >> 16) & 0xFF) | ((rx[2] >> 8) & 0xFF) | (rx[3] & 0xFF);
+    *output = ((rx[0] << 24) & 0xFF) | ((rx[1] << 16) & 0xFF) | ((rx[2] << 8) & 0xFF) | (rx[3] & 0xFF);
 
     xSemaphoreGive(mutex);
     return ret;
@@ -163,11 +163,11 @@ esp_err_t max22200_change_channel_settings(uint8_t channel, uint8_t hit, uint8_t
     }
 
     channel_value |= (MAX22200_HIT_MASK & hit) << MAX22200_HIT_POS;
-    channel_value |= (MAX22200_HIT_T_MASK & hit) << MAX22200_HIT_T_POS;
-    channel_value |= (MAX22200_HOLD_MASK & hit) << MAX22200_HOLD_POS;
-    channel_value |= (MAX22200_FREQ_CFG_MASK & hit) << MAX22200_FREQ_CFG_POS;
-    channel_value |= (MAX22200_VDRNCDR_MASK & hit) << MAX22200_VDRNCDR_POS;
-    channel_value |= (MAX22200_HSNLS_MASK & hit) << MAX22200_HSNLS_POS;
+    channel_value |= (MAX22200_HIT_T_MASK & hit_time) << MAX22200_HIT_T_POS;
+    channel_value |= (MAX22200_HOLD_MASK & hold) << MAX22200_HOLD_POS;
+    channel_value |= (MAX22200_FREQ_CFG_MASK & frequency) << MAX22200_FREQ_CFG_POS;
+    channel_value |= (MAX22200_VDRNCDR_MASK & current_or_voltage) << MAX22200_VDRNCDR_POS;
+    channel_value |= (MAX22200_HSNLS_MASK & high_or_low_side) << MAX22200_HSNLS_POS;
 
     ret = max22200_write_32bit(channel, channel_value);
     if(ret != ESP_OK) {
@@ -193,45 +193,45 @@ MAX22200_Status_flags_t max22200_status_flag_read(bool log_flag_states) {
 
     if (log_flag_states) {
         if(flags.uvm) {
-            ESP_LOGE("WARNING", "UVM FLAG, VM UVLO event has been detected");
+            ESP_LOGW("WARNING", "UVM FLAG, VM UVLO event has been detected");
         } else {
-            ESP_LOGE("OK", "UVM FLAG, Normal operation");
+            ESP_LOGI("OK", "UVM FLAG, Normal operation");
         }
 
         if(flags.comer) {
-            ESP_LOGE("WARNING", "COMER FLAG, SPI Write comunication error detected");
+            ESP_LOGW("WARNING", "COMER FLAG, SPI Write comunication error detected");
         } else {
-            ESP_LOGE("OK", "COMER FLAG, No SPI error detected");
+            ESP_LOGI("OK", "COMER FLAG, No SPI error detected");
         }
         
         if(flags.dpm) {
-            ESP_LOGE("WARNING", "DPM FLAG, At least 1 channel has detected a Detection of Plunger Movement Fault");
+            ESP_LOGW("WARNING", "DPM FLAG, At least 1 channel has detected a Detection of Plunger Movement Fault");
         } else {
-            ESP_LOGE("OK", "DPM FLAG, Normal operation");
+            ESP_LOGI("OK", "DPM FLAG, Normal operation");
         }
         
         if(flags.hhf) {
-            ESP_LOGE("WARNING", "HHF FLAG, At least 1 channel has detected a HIT current fault");
+            ESP_LOGW("WARNING", "HHF FLAG, At least 1 channel has detected a HIT current fault");
         } else {
-            ESP_LOGE("OK", "HHF FLAG, Normal operation");
+            ESP_LOGI("OK", "HHF FLAG, Normal operation");
         }
         
         if(flags.olf) {
-            ESP_LOGE("WARNING", "OLF FLAG, At least 1 channel has detected an open load fault");
+            ESP_LOGW("WARNING", "OLF FLAG, At least 1 channel has detected an open load fault");
         } else {
-            ESP_LOGE("OK", "OLF FLAG, Normal operation");
+            ESP_LOGI("OK", "OLF FLAG, Normal operation");
         }
         
         if(flags.ocp) {
-            ESP_LOGE("WARNING", "OCP FLAG, At least 1 channel has detected an overcurrent event");
+            ESP_LOGW("WARNING", "OCP FLAG, At least 1 channel has detected an overcurrent event");
         } else {
-            ESP_LOGE("OK", "OCP FLAG, Normal operation");
+            ESP_LOGI("OK", "OCP FLAG, Normal operation");
         }
         
         if(flags.ovt) {
-            ESP_LOGE("WARNING", "OVT FLAG, Chip is in thermal protection");    
+            ESP_LOGW("WARNING", "OVT FLAG, Chip is in thermal protection");    
         } else {
-            ESP_LOGE("OK", "OVT FLAG, Normal operation");
+            ESP_LOGI("OK", "OVT FLAG, Normal operation");
         }
 
     }
@@ -275,27 +275,27 @@ MAX22200_Channel_flags_t max22200_diagnose_channel(uint8_t channel) {
     ESP_LOGE("FLAG CHECK", "Flags for channel %ld", channel - 1);
 
     if(flags.ocp) {
-        ESP_LOGE("WARNING", "OCP FLAG, Overcurrent Protection");
+        ESP_LOGW("WARNING", "OCP FLAG, Overcurrent Protection");
     } else {
-        ESP_LOGE("OK", "OCP FLAG, Normal operation");
+        ESP_LOGI("OK", "OCP FLAG, Normal operation");
     }    
     
     if(flags.hhf) {
-        ESP_LOGE("WARNING", "HHF FLAG, HIT Current Not Reached");
+        ESP_LOGW("WARNING", "HHF FLAG, HIT Current Not Reached");
     } else {
-        ESP_LOGE("OK", "HHF FLAG, Normal operation");
+        ESP_LOGI("OK", "HHF FLAG, Normal operation");
     }
         
     if(flags.olf) {
-        ESP_LOGE("WARNING", "OLF FLAG, Open-Load Detection");
+        ESP_LOGW("WARNING", "OLF FLAG, Open-Load Detection");
     } else {
-        ESP_LOGE("OK", "OLF FLAG, Normal operation");
+        ESP_LOGI("OK", "OLF FLAG, Normal operation");
     }
         
     if(flags.dpm) {
-        ESP_LOGE("WARNING", "DPM FLAG, Detection of Plunger Movement");
+        ESP_LOGW("WARNING", "DPM FLAG, Detection of Plunger Movement");
     } else {
-        ESP_LOGE("OK", "DPM FLAG, Normal operation");
+        ESP_LOGI("OK", "DPM FLAG, Normal operation");
     }
 
     return flags;
@@ -308,17 +308,25 @@ MAX22200_Fault_flags_t max22200_get_all_fault_flags() {
 
     if(err != ESP_OK) {
         ESP_LOGE("ERROR", "Error reading fault registry");
+        flags.channel_0 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
+        flags.channel_1 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
+        flags.channel_2 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
+        flags.channel_3 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
+        flags.channel_4 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
+        flags.channel_5 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
+        flags.channel_6 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
+        flags.channel_7 = (MAX22200_Channel_flags_t) {.ocp = 0x01,.hhf = 0x01,  .olf = 0x01,.dpm = 0x01};
         return flags;
     }
 
-    flags.channel_0 = get_channel_fault_flags(MAX22200_ADDR_CH0);
-    flags.channel_1 = get_channel_fault_flags(MAX22200_ADDR_CH1);
-    flags.channel_2 = get_channel_fault_flags(MAX22200_ADDR_CH2);
-    flags.channel_3 = get_channel_fault_flags(MAX22200_ADDR_CH3);
-    flags.channel_4 = get_channel_fault_flags(MAX22200_ADDR_CH4);
-    flags.channel_5 = get_channel_fault_flags(MAX22200_ADDR_CH5);
-    flags.channel_6 = get_channel_fault_flags(MAX22200_ADDR_CH6);
-    flags.channel_7 = get_channel_fault_flags(MAX22200_ADDR_CH7);
+    flags.channel_0 = get_channel_fault_flags(MAX22200_ADDR_CH0, fault_val);
+    flags.channel_1 = get_channel_fault_flags(MAX22200_ADDR_CH1, fault_val);
+    flags.channel_2 = get_channel_fault_flags(MAX22200_ADDR_CH2, fault_val);
+    flags.channel_3 = get_channel_fault_flags(MAX22200_ADDR_CH3, fault_val);
+    flags.channel_4 = get_channel_fault_flags(MAX22200_ADDR_CH4, fault_val);
+    flags.channel_5 = get_channel_fault_flags(MAX22200_ADDR_CH5, fault_val);
+    flags.channel_6 = get_channel_fault_flags(MAX22200_ADDR_CH6, fault_val);
+    flags.channel_7 = get_channel_fault_flags(MAX22200_ADDR_CH7, fault_val);
 
     return flags;
 }
